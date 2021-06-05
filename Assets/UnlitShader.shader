@@ -39,6 +39,8 @@ Shader "Unlit/UnlitShader"
 
         _GroundBrightColor("Bright Color", Color) = (1,1,1,1)
         _GroundShadowColor("Shadow Color", Color) = (0,0,0,0)
+
+        _MainStepCount("Main Step Count", Range(40, 128)) = 50
     }
     SubShader
     {
@@ -109,6 +111,10 @@ Shader "Unlit/UnlitShader"
             float _TopInvLerpVal;
             float _GroundCutOffpoint;
 
+            float _MainStepCount;
+
+            //#define CLOUD_RIVER
+
             float2 rayBoxDst(float3 boundsMin, float3 boundsMax, float3 rayOrigin, float3 rayDir)
             {
                 float3 t0 = (boundsMin - rayOrigin) / rayDir;
@@ -147,7 +153,7 @@ Shader "Unlit/UnlitShader"
             float textureMainSample(float3 p){
                 float3 movementOffset = float3(_Time.y * _TimeMul, 0, 0);
                 float3 scaledPoint = p/(_ScaleOffsetMain.xyz * _ScaleVec.x) + movementOffset; //+ cloudOffset;
-                return tex3D(_CloudTex, scaledPoint);
+                return tex3Dlod(_CloudTex, float4(scaledPoint, 0));
             }
 
             float sampleWaterHeight(float3 p){
@@ -155,7 +161,31 @@ Shader "Unlit/UnlitShader"
                 return cloudTexOffset;
             }
 
-            float sceneDensity(float3 p){
+
+            //Cloud river
+            float sceneDensity(float3 p, bool addDetail){
+            #ifndef CLOUD_RIVER
+                
+                float densityMainPoint = textureMainSample(p);
+                float densityMainPointOffset = textureMainSample(p + _SecondSampleOffset);
+
+                float3 scaled2Point = p / _ScaleVec.y;
+
+                float densityDetailPoint = addDetail? tex3Dlod(_CloudTex, float4(scaled2Point, 0)) : 0;
+
+                float mainDensity = clamp(densityMainPoint + densityMainPointOffset, 0, 1.2);
+
+                float densityMaskY = smoothstep(0.2, 0.5, abs((p.y - _volumeBoundsMin.y)/(_volumeBoundsMax.y - _volumeBoundsMin.y) - 0.5));
+                float densityMaskX = smoothstep(0.4, 0.5, abs((p.x - _volumeBoundsMin.x)/(_volumeBoundsMax.x - _volumeBoundsMin.x) - 0.5));
+                float densityMaskZ = smoothstep(0.4, 0.5, abs((p.z - _volumeBoundsMin.z)/(_volumeBoundsMax.z - _volumeBoundsMin.z) - 0.5));
+                float densityMask = saturate(densityMaskX + densityMaskY + densityMaskZ);
+
+                float densityPoint = saturate(invLerp(_InvLerpAB.x, _InvLerpAB.y, (mainDensity + densityMask  + densityDetailPoint * _DetailMultiplier)));
+                
+                return densityPoint * _DensityMul;
+
+            #else
+
                 float densityMainPoint = textureMainSample(p);
                 float densityMainPointOffset = textureMainSample(p + _SecondSampleOffset);
 
@@ -199,6 +229,7 @@ Shader "Unlit/UnlitShader"
                 zLerpWeight = pow(zLerpWeight, _SideLinearMultiplier.w);
 
                 return densityPoint * _DensityMul * xLerpWeight * zLerpWeight * yLerpWeight;
+            #endif
             }
 
             float hg(float angle) {
@@ -227,7 +258,7 @@ Shader "Unlit/UnlitShader"
 
                         float3 pointCheck = rayOrigin + dirTowardsSun * currentDistance;
 
-                        float densityPoint = sceneDensity(pointCheck);
+                        float densityPoint = sceneDensity(pointCheck, false);
 
                         density += densityPoint;
 
@@ -282,11 +313,13 @@ Shader "Unlit/UnlitShader"
                         float lightIntensity = 1;
                         float currentDistance = rayInfo.x;
                         float solidDepth = 0;
+
+                        int stepCount = round(_MainStepCount);
                         [loop]
-                        for (int i = 0; i < 128; i++)
+                        for (int i = 0; i < stepCount; i++)
                         {
                             float3 pointCheck = rayOrigin + mul(rayDir, currentDistance);
-                            float pointDensity = sceneDensity(pointCheck);
+                            float pointDensity = sceneDensity(pointCheck, true);
                             densityOverCameraRay += pointDensity;
 
                             if(pointDensity > 0 && lightEnergy < 0.95){
@@ -322,7 +355,7 @@ Shader "Unlit/UnlitShader"
                                 break;
                             }
 
-                            currentDistance += clamp(rayInfo.y / 128.0, 0.05, 100);
+                            currentDistance += clamp(rayInfo.y / stepCount, 0.05, 100);
                         }
 
                         densityOverCameraRay = clamp(invLerp(exp(-1), 1, exp(-densityOverCameraRay * _DensityExpMultiplier)), 0, 1);
@@ -333,7 +366,7 @@ Shader "Unlit/UnlitShader"
 
                         float3 pixelPoint = rayOrigin + mul(rayDir, solidDepth);
 
-                        float3 cOut =cloudColor; //lerp(cloudColor, groundColor, clamp(invLerp(_GroundCutOffpoint, _GroundCutOffpoint + 2, pixelPoint.y), 0, 1));
+                        float3 cOut = cloudColor; //lerp(cloudColor, groundColor, clamp(invLerp(_GroundCutOffpoint, _GroundCutOffpoint + 2, pixelPoint.y), 0, 1));
 
 
                         if(eyeDepth > solidDepth){

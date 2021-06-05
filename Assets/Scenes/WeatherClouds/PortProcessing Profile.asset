@@ -66,7 +66,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ccf1aba9553839d41ae37dd52e9ebcce, type: 3}
   m_Name: MotionBlur
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 0
@@ -123,12 +123,12 @@ MonoBehaviour:
   active: 0
   m_AdvancedMode: 0
   threshold:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.9
     min: 0
   intensity:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 2.4
     min: 0
   scatter:
     m_OverrideState: 0
@@ -140,8 +140,8 @@ MonoBehaviour:
     m_Value: 65472
     min: 0
   tint:
-    m_OverrideState: 0
-    m_Value: {r: 0.99220645, g: 1, b: 0.7877358, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 0.6933962, g: 0.95490503, b: 1, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 1

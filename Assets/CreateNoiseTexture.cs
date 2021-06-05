@@ -46,7 +46,7 @@ public class CreateNoiseTexture : MonoBehaviour
 
     public void CreateNoise()
     {
-        int textureSize = 256;
+        int textureSize = 64;
         TextureFormat textureFormat = TextureFormat.R8;
         TextureWrapMode wrapMode = TextureWrapMode.Repeat;
 
