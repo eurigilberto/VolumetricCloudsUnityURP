@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7674197673774284500
+--- !u!114 &-2426507661920695611
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9,12 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecb2e258101e8444db0bf935eb753fa4, type: 3}
-  m_Name: Volumetric
+  m_Script: {fileID: 11500000, guid: e1d6fd3ec0526f14fb414f8f4a0914a6, type: 3}
+  m_Name: VolumetricRendering
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    material: {fileID: 2100000, guid: a9b6b30ac3de5b24ca0ef84bd56fe21a, type: 2}
+    cloudRenderer: {fileID: 2100000, guid: e807bb59e28351f4ebfc98171e4a4753, type: 2}
+    denoiseMaterial: {fileID: 2100000, guid: a850461752a18dc4d9164474b3a23829, type: 2}
+    combineTexture: {fileID: 2100000, guid: b477e7652d80bd14e9a09b7ea41cd2ab, type: 2}
     materialPassIndex: 0
 --- !u!114 &11400000
 MonoBehaviour:
@@ -29,8 +31,8 @@ MonoBehaviour:
   m_Name: ForwardRenderer
   m_EditorClassIdentifier: 
   m_RendererFeatures:
-  - {fileID: -7674197673774284500}
-  m_RendererFeatureMap: 2c018e16e0c57f95
+  - {fileID: -2426507661920695611}
+  m_RendererFeatureMap: c50a743e235053de
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
